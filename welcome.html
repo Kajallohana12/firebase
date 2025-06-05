@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .message {
+      text-align: center;
+      font-size: 2rem;
+      color: #1e3a8a;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 24px;
+      background-color: #1e40af;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #1e3a8a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="message">🎉 Welcome to the Kajal Auth Portal!</div>
+  <button onclick="logout()">Logout</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyChZ_MVZLyklSffaUcO3_g0DvpYB5BhPiU",
+      authDomain: "kajal-c137a.firebaseapp.com",
+      projectId: "kajal-c137a",
+      storageBucket: "kajal-c137a.appspot.com",
+      messagingSenderId: "341282360488",
+      appId: "1:341282360488:web:cd448f7d8c09cba024c69d",
+      measurementId: "G-76JMQ893GN"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function logout() {
+      auth.signOut().then(() => {
+        alert("👋 Logged out successfully.");
+        window.location.href = "kajal.html";
+      }).catch((error) => {
+        alert("❌ Logout failed: " + error.message);
+      });
+    }
+
+    // Redirect if not logged in
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kajal Auth Portal</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #f3f4f6, #dbeafe);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .card {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+      h2 {
+        text-align: center;
+        color: #1e3a8a;
+        margin-bottom: 20px;
+      }
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+        background: #f9fafb;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 15px;
+        background-color: #1e40af;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      button:hover {
+        background-color: #1e3a8a;
+      }
+
+      #googleSignupBtn {
+        background-color: #ffffff;
+        color: #444;
+        border: 1px solid #ccc;
+        font-weight: 500;
+        margin-top: 10px;
+      }
+      #googleSignupBtn:hover {
+        background-color: #f1f1f1;
+      }
+
+      .link {
+        text-align: center;
+        margin-top: 12px;
+        color: #1e40af;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+      .hidden {
+        display: none;
+      }
+      .message {
+        margin-top: 12px;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+      #notification {
+        font-weight: bold;
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2 id="formTitle">Login</h2>
+
+      <div id="notification"></div>
+
+      <!-- Sign Up Form -->
+      <div id="signupForm" class="hidden">
+        <input type="text" id="signupName" placeholder="Full Name" />
+        <input type="text" id="signupPhone" placeholder="Phone Number" />
+        <input type="email" id="signupEmail" placeholder="Email" />
+        <input type="password" id="signupPassword" placeholder="Password" />
+        <button onclick="signup()">Create Account</button>
+        <button id="googleSignupBtn" onclick="googleSignIn()">Continue with Google</button>
+        <div id="signupMessage" class="message"></div>
+        <div class="link" onclick="switchForm('login')">Already have an account? Login</div>
+      </div>
+
+      <!-- Login Form -->
+      <div id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Email" />
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button onclick="login()">Login</button>
+        <div id="loginMessage" class="message"></div>
+        <div class="link" onclick="switchForm('signup')">New user? Sign Up</div>
+      </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyChZ_MVZLyklSffaUcO3_g0DvpYB5BhPiU",
+        authDomain: "kajal-c137a.firebaseapp.com",
+        projectId: "kajal-c137a",
+        storageBucket: "kajal-c137a.appspot.com",
+        messagingSenderId: "341282360488",
+        appId: "1:341282360488:web:cd448f7d8c09cba024c69d",
+        measurementId: "G-76JMQ893GN",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const db = firebase.firestore();
+
+      function switchForm(type) {
+        document.getElementById("loginForm").classList.toggle("hidden", type === "signup");
+        document.getElementById("signupForm").classList.toggle("hidden", type === "login");
+        document.getElementById("formTitle").textContent = type === "signup" ? "Sign Up" : "Login";
+
+        document.getElementById("signupMessage").textContent = "";
+        document.getElementById("loginMessage").textContent = "";
+        const notification = document.getElementById("notification");
+        notification.style.display = "none";
+        notification.textContent = "";
+      }
+
+      function signup() {
+        const name = document.getElementById("signupName").value.trim();
+        const phone = document.getElementById("signupPhone").value.trim();
+        const email = document.getElementById("signupEmail").value.trim();
+        const password = document.getElementById("signupPassword").value;
+        const msg = document.getElementById("signupMessage");
+        const notification = document.getElementById("notification");
+
+        msg.textContent = "";
+        notification.style.display = "none";
+        notification.textContent = "";
+
+        if (!name || !phone || !email || !password) {
+          msg.style.color = "red";
+          msg.textContent = "Please fill in all fields.";
+          return;
+        }
+
+        auth.createUserWithEmailAndPassword(email, password)
+          .then((userCred) => {
+            const uid = userCred.user.uid;
+            return db.collection("users").doc(uid).set({
+              fullName: name,
+              phone: phone,
+              email: email,
+            });
+          })
+          .then(() => {
+            notification.style.color = "green";
+            notification.style.backgroundColor = "#f0fdf4";
+            notification.style.border = "1px solid #4ade80";
+            notification.textContent = "✅ Successfully Signed Up! Redirecting to login...";
+            notification.style.display = "block";
+
+            setTimeout(() => {
+              notification.style.display = "none";
+              notification.textContent = "";
+              switchForm("login");
+            }, 2000);
+          })
+          .catch((err) => {
+            msg.style.color = "red";
+            msg.textContent = "❌ " + err.message;
+          });
+      }
+
+      function login() {
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        const msg = document.getElementById("loginMessage");
+        msg.textContent = "";
+
+        if (!email || !password) {
+          msg.style.color = "red";
+          msg.textContent = "Please enter your email and password.";
+          return;
+        }
+
+        auth.signInWithEmailAndPassword(email, password)
+          .then(() => {
+            msg.style.color = "green";
+            msg.textContent = "✅ Logged in successfully!";
+            setTimeout(() => {
+              window.location.href = "welcome.html";
+            }, 1500);
+          })
+          .catch((err) => {
+            msg.style.color = "red";
+            msg.textContent = "❌ " + err.message;
+          });
+      }
+
+      function googleSignIn() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+          .then((result) => {
+            const user = result.user;
+            if (result.additionalUserInfo.isNewUser) {
+              return db.collection("users").doc(user.uid).set({
+                fullName: user.displayName,
+                email: user.email,
+                phone: user.phoneNumber || "N/A",
+                googleSignIn: true,
+              });
+            }
+          })
+          .then(() => {
+            window.location.href = "welcome.html";
+          })
+          .catch((error) => {
+            const msg = document.getElementById("signupMessage");
+            msg.style.color = "red";
+            msg.textContent = "❌ " + error.message;
+          })
+            }
+
+      switchForm("login");
+    </script>
+  </body>
